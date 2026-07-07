@@ -1,17 +1,19 @@
 <div align="center">
 
-# GrowEasy — AI-Powered CSV Importer for Real Estate CRM
+# GrowEasy
 
-**Drop any CSV. AI maps it. Your leads land perfectly.**
+**AI-powered CSV importer for real estate CRM teams**
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
-[![Express.js](https://img.shields.io/badge/Express-4.x-000000?style=for-the-badge&logo=express)](https://expressjs.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
-[![Google Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?style=for-the-badge&logo=google)](https://ai.google.dev/)
-[![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3-F55036?style=for-the-badge)](https://groq.com/)
+Upload any lead CSV — any column names. AI maps every row to your CRM schema, deduplicates contacts, and delivers clean records in seconds.
 
-![GrowEasy Banner](https://placehold.co/1200x400/0f172a/38bdf8?text=GrowEasy+%E2%80%94+AI-Powered+CSV+Importer)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=flat-square&logo=next.js)](https://nextjs.org/)
+[![Express](https://img.shields.io/badge/Express-4-000000?style=flat-square&logo=express)](https://expressjs.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?style=flat-square&logo=tailwind-css)](https://tailwindcss.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?style=flat-square&logo=google)](https://ai.google.dev/)
+[![Groq](https://img.shields.io/badge/Groq-LLaMA_3.3-F55036?style=flat-square)](https://groq.com/)
+
+![GrowEasy Dashboard](docs/screenshots/dashboard.png)
 
 </div>
 
@@ -19,147 +21,122 @@
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
+- [What is GrowEasy?](#what-is-groweasy)
+- [Features](#features)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
 - [How It Works](#how-it-works)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Environment Variables](#environment-variables)
+- [Running Tests](#running-tests)
 - [API Reference](#api-reference)
 - [CRM Schema](#crm-schema)
 - [Sample CSV Files](#sample-csv-files)
-- [Contributing](#contributing)
+- [Deployment Notes](#deployment-notes)
 - [License](#license)
 
 ---
 
-## Overview
+## What is GrowEasy?
 
-GrowEasy is a fullstack web application that solves a real pain point for real estate sales teams: **importing leads from dozens of different CSV formats into one unified CRM schema** — without manual column mapping.
+Real estate sales teams receive leads from Facebook Ads, Google Ads, agency spreadsheets, and third-party CRMs — each with different column names and formats. GrowEasy removes the manual mapping step:
 
-You upload a CSV (from Facebook Ads, Google Ads, a manual spreadsheet, or any other source). The AI reads the headers and data, intelligently maps every column to the correct CRM field, normalises phone numbers, deduplicates emails, and delivers clean, structured lead records — all in seconds.
+1. **Drop a CSV** — any headers, any source
+2. **Preview** the raw data before processing
+3. **AI maps** each row to a unified 15-field CRM schema
+4. **Save & browse** leads on the Dashboard, Leads Directory, or Saved Leads pages
 
-> Built for teams that deal with messy, inconsistent lead exports every single day.
+The app supports **light and dark themes**, **grid and table views**, **search & sort**, and **pagination** across all lead views.
 
 ---
 
-## Key Features
+## Features
 
-### AI-Powered Column Mapping
-Upload any CSV with any column names. GrowEasy's AI (Google Gemini 2.5 Flash with Groq LLaMA 3.3 as fallback) automatically understands the intent of each column and maps it to the correct CRM field — no manual configuration needed.
-
-### Dual-Provider AI with Graceful Fallback
-- **Primary:** Google Gemini 2.5 Flash (fast, structured JSON output)
-- **Fallback:** Groq LLaMA 3.3 70B (activates automatically if Gemini fails)
-- **Row-level fallback:** If a batch fails after retries, it falls back to row-by-row processing — so you never lose data
-
-### Batch Processing with Concurrency Control
-Processes up to **20 records per AI call** and runs **2 batches concurrently**. Exponential backoff with 3 retry attempts ensures reliability under rate limits.
-
-### Live Import Preview
-Before the AI runs, you see a raw preview of your uploaded CSV. After processing, you get a split view of **imported records** vs. **skipped records**, with reasons for any skips.
-
-### Experts / Leads Directory
-Browse all imported leads in a responsive **grid or table view** with search, filter, and pagination. User cards show name, company, city, status badge, and lead source at a glance.
-
-### Toast Notification System
-Real-time feedback on every action — file upload, processing start, success, and errors — through a built-in notification centre.
-
-### Data Integrity Guarantees
-- Phone numbers are stored as digits-only (no country code mixing)
-- Emails are lowercased and deduplicated
-- Records missing both email and mobile are automatically skipped
-- All enum values are validated against a strict Zod schema
+| Area | Details |
+|:-----|:--------|
+| **AI column mapping** | Gemini 2.5 Flash primary; Groq LLaMA 3.3 70B automatic fallback |
+| **Resilient processing** | Batches of 20 rows, 2 concurrent, exponential backoff, row-by-row fallback on batch failure |
+| **Live import stream** | Server-sent progress events during import (`/api/import/stream`) |
+| **Import preview** | Virtualized table of raw CSV before AI runs |
+| **Results view** | Summary cards, imported table, expandable skipped-rows panel |
+| **Dashboard** | Import folders (5 per row) — click a folder to browse its leads below |
+| **Leads Directory** | All saved leads across every import |
+| **Saved Leads** | Per-import batch selector with delete |
+| **Unified lead cards** | Same expanded card layout everywhere (email, phone, status, company, details drawer) |
+| **Pagination** | 12 cards/page in grid, 15 rows/page in table |
+| **Data integrity** | Zod validation, email dedup, digits-only phones, skip rows with no email AND no mobile |
 
 ---
 
 ## Screenshots
 
-> Place screenshots in a `/docs/screenshots/` folder and update paths below.
+### Dashboard — stats, import folders & lead table
 
-| Import Flow | Results View |
-|:-----------:|:------------:|
-| ![Upload Screen](https://placehold.co/580x360/0f172a/38bdf8?text=Drop+Zone+%26+CSV+Upload) | ![Results Screen](https://placehold.co/580x360/0f172a/38bdf8?text=Import+Results+%26+Summary) |
+![GrowEasy Dashboard with import folders and paginated lead table](docs/screenshots/dashboard.png)
 
-| Experts Directory (Grid) | Experts Directory (Table) |
-|:------------------------:|:-------------------------:|
-| ![Grid View](https://placehold.co/580x360/0f172a/38bdf8?text=Lead+Cards+Grid+View) | ![Table View](https://placehold.co/580x360/0f172a/38bdf8?text=Lead+Table+View) |
+### Import CSV — upload & drop zone
 
-| Lead Detail | Search & Filter |
-|:-----------:|:---------------:|
-| ![Lead Detail](https://placehold.co/580x360/0f172a/38bdf8?text=Lead+Detail+Page) | ![Search](https://placehold.co/580x360/0f172a/38bdf8?text=Search+%26+Filter+UI) |
+![CSV import upload page with step indicator and drop zone](docs/screenshots/import-lead.png)
+
+### Import complete — summary cards & results table
+
+![Import results with summary stats and mapped lead records](docs/screenshots/lead-result.png)
+
+### Leads Directory — search, sort & paginated table
+
+![Leads Directory with stats bar, filters, and paginated table view](docs/screenshots/lead-dir.png)
 
 ---
 
 ## Tech Stack
 
-### Frontend
+### Frontend (`frontend/`)
 
-| Technology | Version | Purpose |
-|:-----------|:--------|:--------|
-| **Next.js** | 16.2.10 | React framework with App Router |
-| **React** | 19.2.4 | UI rendering |
-| **TypeScript** | 5 | Type safety |
-| **Tailwind CSS** | 4.3.2 | Utility-first styling |
-| **Zustand** | 5.0.14 | Import flow state management |
-| **Framer Motion** | 12.42.2 | Page and component animations |
-| **Axios** | 1.18.1 | HTTP client |
-| **PapaParse** | 5.5.4 | Client-side CSV parsing & preview |
-| **Lucide React** | 1.23.0 | Icon library |
+| Package | Purpose |
+|:--------|:--------|
+| Next.js 16 (App Router) | Pages, routing, SSR |
+| React 19 + TypeScript | UI |
+| Tailwind CSS 4 | Styling & dark mode |
+| Zustand | Import flow state |
+| Framer Motion | Animations |
+| PapaParse | Client-side CSV parse |
+| TanStack Virtual | Preview table virtualization |
+| next-themes | Light / dark toggle |
 
-### Backend
+### Backend (`backend/`)
 
-| Technology | Version | Purpose |
-|:-----------|:--------|:--------|
-| **Node.js** | 20+ | Runtime |
-| **Express.js** | 4.19.2 | HTTP server & routing |
-| **TypeScript** | 5.4.5 | Type safety |
-| **Google Generative AI** | 0.21.0 | Gemini 2.5 Flash — primary AI |
-| **Groq SDK** | 1.3.0 | LLaMA 3.3 70B — fallback AI |
-| **PapaParse** | 5.4.1 | Server-side CSV parsing |
-| **Multer** | 1.4.5 | Multipart file upload handling |
-| **Zod** | 3.23.8 | Schema validation |
+| Package | Purpose |
+|:--------|:--------|
+| Express 4 + TypeScript | REST API |
+| Google Generative AI | Gemini mapping |
+| Groq SDK | Fallback provider |
+| PapaParse | Server CSV parse |
+| Multer | File uploads |
+| Zod | Env + CRM schema validation |
 
 ---
 
 ## How It Works
 
 ```
-┌─────────────┐     ┌───────────────────────────────────────────────────────┐
-│   Browser   │     │                     Backend                           │
-│             │     │                                                       │
-│  Drop CSV   │────▶│  1. Parse CSV with PapaParse                          │
-│             │     │  2. Chunk rows into batches of 20                     │
-│  Preview    │     │  3. Send 2 batches concurrently to AI                 │
-│  raw data   │     │                                                       │
-│             │     │  ┌─────────────────────────────────────────────────┐  │
-│  AI maps    │◀────│  │  AI Processing Pipeline                         │  │
-│  & imports  │     │  │                                                 │  │
-│             │     │  │  Gemini 2.5 Flash (primary, structured JSON)    │  │
-│  See stats  │     │  │       │ fails?                                  │  │
-│  & records  │     │  │       ▼                                         │  │
-│             │     │  │  Groq LLaMA 3.3 70B (provider fallback)         │  │
-│             │     │  │       │ fails after 3 retries?                  │  │
-│             │     │  │       ▼                                         │  │
-│             │     │  │  Row-by-row fallback (never loses data)         │  │
-│             │     │  └─────────────────────────────────────────────────┘  │
-│             │     │                                                       │
-│             │     │  4. Validate each record against Zod CRM schema       │
-│             │     │  5. Skip records with no email AND no mobile          │
-│             │     │  6. Return imported + skipped records + stats         │
-└─────────────┘     └───────────────────────────────────────────────────────┘
+Browser                         Backend
+───────                         ───────
+Upload CSV  ──────────────────▶ Parse rows (PapaParse)
+Preview raw data                Chunk into batches of 20
+Confirm import  ──────────────▶ 2 concurrent AI calls
+                                │
+                                ├─ Gemini 2.5 Flash (primary)
+                                ├─ Groq LLaMA 3.3 (provider fallback)
+                                └─ Row-by-row (batch failure fallback)
+                                │
+                                ◀── SSE progress + final result
+Validate + display results      Zod CRM schema per record
+Save to localStorage            Skip if no email AND no mobile
+Browse in Dashboard / Leads
 ```
 
-### The AI Mapping Step in Detail
-
-The AI receives:
-- A batch of raw CSV rows (up to 20)
-- A system prompt describing all 15 CRM fields, their types, and transformation rules
-- A strict JSON schema that Gemini must conform to
-
-The AI returns structured objects with fields like `name`, `email`, `mobile_without_country_code`, `country_code`, `crm_status`, `data_source`, etc. — regardless of what the original column headers were.
+The AI receives raw CSV rows plus a system prompt describing all CRM fields. It returns structured JSON regardless of original column names.
 
 ---
 
@@ -167,56 +144,33 @@ The AI returns structured objects with fields like `name`, `email`, `mobile_with
 
 ```
 groweasy/
-│
-├── backend/                        # Express + TypeScript API
+├── backend/
 │   └── src/
-│       ├── config/
-│       │   └── env.ts              # Zod-validated environment config
-│       ├── controllers/
-│       │   └── import.controller.ts
-│       ├── routes/
-│       │   └── import.ts           # POST /api/import
+│       ├── config/env.ts           # Zod-validated environment
+│       ├── controllers/import.controller.ts
+│       ├── routes/import.ts        # POST /api/import, /api/import/stream
 │       ├── services/
-│       │   ├── ai.service.ts       # Gemini / Groq batching + fallback
-│       │   ├── csv.service.ts      # CSV parsing
-│       │   └── mapping.service.ts  # Row transformation to CRM schema
-│       ├── schema/
-│       │   ├── crm.schema.ts       # Zod schema (source of truth)
-│       │   └── crm.gemini-schema.ts# Gemini response schema
-│       ├── prompts/
-│       │   └── extract.prompt.ts   # AI system prompt
-│       └── utils/
-│           ├── backoff.ts          # Exponential backoff
-│           └── logger.ts           # Structured logger
+│       │   ├── ai.service.ts       # Gemini + Groq batching
+│       │   ├── csv.service.ts
+│       │   └── mapping.service.ts
+│       ├── schema/crm.schema.ts    # CRM field definitions
+│       └── prompts/extract.prompt.ts
 │
-├── frontend/                       # Next.js 16 App Router
+├── frontend/
 │   ├── app/
-│   │   ├── page.tsx                # Experts directory (home)
-│   │   ├── import/page.tsx         # CSV import flow
-│   │   ├── leads/page.tsx          # Leads list
-│   │   └── users/[id]/page.tsx     # User detail
+│   │   ├── page.tsx                # Dashboard (folders + leads)
+│   │   ├── import/page.tsx         # CSV import wizard
+│   │   ├── leads/page.tsx          # Saved Leads (per-import batches)
+│   │   └── users/page.tsx          # Leads Directory (all leads)
 │   ├── components/
-│   │   ├── import/                 # DropZone, PreviewTable, ResultTable, SummaryCards
-│   │   ├── users/                  # UserCard, UserTable, SearchBar, StatsBar
-│   │   ├── leads/                  # LeadCard, LeadTable
-│   │   └── ui/                     # Skeleton, EmptyState, ErrorState, Pagination
-│   ├── store/
-│   │   └── importStore.ts          # Zustand: upload → preview → processing → results
-│   ├── hooks/                      # useUsers, useUser, useDebounce, useLocalStorage
-│   ├── services/
-│   │   └── api.ts                  # Axios HTTP client
-│   └── lib/
-│       ├── api.ts                  # Import API call
-│       ├── csv.ts                  # Client-side CSV parser
-│       └── types.ts                # Shared TypeScript types
+│   │   ├── import/                 # DropZone, PreviewTable, ResultTable…
+│   │   ├── leads/                  # LeadCard, LeadGrid, LeadTable
+│   │   └── ui/                     # Pagination, ThemeToggle…
+│   ├── hooks/useImportStream.ts    # SSE import progress
+│   └── store/importStore.ts        # Upload → preview → process → done
 │
-└── samples/                        # Example CSVs for testing
-    ├── groweasy_leads_150.csv      # 150 real estate leads
-    ├── agency_messy.csv            # Inconsistent column naming
-    ├── facebook_leads.csv          # Facebook Ads export format
-    ├── google_ads.csv              # Google Ads export format
-    ├── realestate_crm.csv          # Real estate CRM export
-    └── manual_sheet.csv            # Manual entry spreadsheet
+├── docs/screenshots/               # README images
+└── samples/                        # Test CSV files
 ```
 
 ---
@@ -225,10 +179,9 @@ groweasy/
 
 ### Prerequisites
 
-- **Node.js** v20 or higher
-- **npm** v9 or higher
-- A **Google Gemini API key** (get one at [ai.google.dev](https://ai.google.dev/))
-- A **Groq API key** for fallback (get one at [console.groq.com](https://console.groq.com/)) _(optional but recommended)_
+- **Node.js 20+** and **npm 9+**
+- **Google Gemini API key** — [ai.google.dev](https://ai.google.dev/)
+- **Groq API key** _(recommended for fallback)_ — [console.groq.com](https://console.groq.com/)
 
 ### 1. Clone the repository
 
@@ -237,7 +190,7 @@ git clone https://github.com/your-username/groweasy.git
 cd groweasy
 ```
 
-### 2. Set up the Backend
+### 2. Backend setup
 
 ```bash
 cd backend
@@ -245,43 +198,73 @@ npm install
 cp .env.example .env
 ```
 
-Edit `.env` and fill in your API keys (see [Environment Variables](#environment-variables)).
+Edit `backend/.env` and add your API keys (see [Environment Variables](#environment-variables)).
 
 ```bash
-# Development (hot reload)
+# Development (hot reload on port 3001)
 npm run dev
-
-# Production
-npm run build
-npm start
 ```
 
-The backend starts on **http://localhost:3001**.
-
-### 3. Set up the Frontend
+Verify the server is running:
 
 ```bash
-cd ../frontend
+curl http://localhost:3001/api/health
+# → {"ok":true,"timestamp":"..."}
+```
+
+### 3. Frontend setup
+
+Open a **second terminal**:
+
+```bash
+cd frontend
 npm install
-cp .env.local.example .env.local
+cp .env.example .env.local
 ```
 
-Edit `.env.local` and set `NEXT_PUBLIC_API_URL=http://localhost:3001`.
+`frontend/.env.local` should contain:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+```
 
 ```bash
-# Development
+# Development (port 3000)
 npm run dev
-
-# Production
-npm run build
-npm start
 ```
 
-The frontend starts on **http://localhost:3000**.
+### 4. Use the app
 
-### 4. Open the app
+1. Open **http://localhost:3000**
+2. Go to **Import CSV** in the sidebar
+3. Upload a file from the `samples/` folder (e.g. `samples/groweasy_leads_150.csv`)
+4. Preview → **Confirm & Import** → wait for AI mapping
+5. Click **Save Import** to persist leads locally
+6. Browse on **Dashboard**, **Leads Directory**, or **Saved Leads**
 
-Visit [http://localhost:3000](http://localhost:3000) and try uploading one of the sample CSVs from the `/samples` folder.
+> **Tip:** Both servers must be running. The frontend talks to the backend at `NEXT_PUBLIC_API_URL`.
+
+### Quick start (both servers)
+
+From the repo root, in two terminals:
+
+```bash
+# Terminal 1
+cd backend && npm run dev
+
+# Terminal 2
+cd frontend && npm run dev
+```
+
+### Production build
+
+```bash
+# Backend
+cd backend && npm run build && npm start
+
+# Frontend
+cd frontend && npm run build && npm start
+```
 
 ---
 
@@ -291,33 +274,22 @@ Visit [http://localhost:3000](http://localhost:3000) and try uploading one of th
 
 | Variable | Required | Default | Description |
 |:---------|:--------:|:--------|:------------|
-| `PORT` | No | `3001` | Port the Express server listens on |
-| `NODE_ENV` | No | `development` | `development` or `production` |
+| `PORT` | No | `3001` | API server port |
 | `GEMINI_API_KEY` | **Yes** | — | Google Gemini API key |
-| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Gemini model identifier |
-| `GROQ_API_KEY` | No | — | Groq API key (enables fallback provider) |
-| `GROQ_MODEL` | No | `llama-3.3-70b-versatile` | Groq model identifier |
-| `AI_BATCH_SIZE` | No | `20` | Max records per AI request |
-| `AI_MAX_CONCURRENCY` | No | `2` | Parallel batch limit |
-| `AI_MAX_RETRIES` | No | `3` | Retry attempts per batch before fallback |
-| `ALLOWED_ORIGINS` | No | `http://localhost:3000` | Comma-separated list of allowed CORS origins |
+| `GEMINI_MODEL` | No | `gemini-2.5-flash` | Gemini model ID |
+| `GROQ_API_KEY` | No | — | Groq key (enables fallback) |
+| `GROQ_MODEL` | No | `llama-3.3-70b-versatile` | Groq model ID |
+| `AI_BATCH_SIZE` | No | `20` | Rows per AI request |
+| `AI_MAX_CONCURRENCY` | No | `2` | Parallel batches |
+| `AI_MAX_RETRIES` | No | `3` | Retries before row fallback |
+| `ALLOWED_ORIGINS` | No | `*` | Comma-separated CORS origins |
 
-Example `backend/.env`:
+Example:
 
 ```env
 PORT=3001
-NODE_ENV=development
-
-GEMINI_API_KEY=AIza...
-GEMINI_MODEL=gemini-2.5-flash
-
+GEMINI_API_KEY=AIzaSy...
 GROQ_API_KEY=gsk_...
-GROQ_MODEL=llama-3.3-70b-versatile
-
-AI_BATCH_SIZE=20
-AI_MAX_CONCURRENCY=2
-AI_MAX_RETRIES=3
-
 ALLOWED_ORIGINS=http://localhost:3000,https://your-app.vercel.app
 ```
 
@@ -325,186 +297,111 @@ ALLOWED_ORIGINS=http://localhost:3000,https://your-app.vercel.app
 
 | Variable | Required | Description |
 |:---------|:--------:|:------------|
-| `NEXT_PUBLIC_API_URL` | **Yes** | Base URL of the backend API |
+| `NEXT_PUBLIC_API_URL` | **Yes** | Backend base URL (no trailing slash) |
 
-```env
-NEXT_PUBLIC_API_URL=http://localhost:3001
+---
+
+## Running Tests
+
+```bash
+# Backend unit tests
+cd backend && npm test
+
+# Frontend tests
+cd frontend && npm test
 ```
 
 ---
 
 ## API Reference
 
-### Health Check
-
-```
-GET /api/health
-```
-
-**Response:**
-```json
-{
-  "ok": true,
-  "timestamp": "2026-07-07T12:00:00.000Z"
-}
-```
-
----
-
-### Import CSV
-
-```
-POST /api/import
-```
-
-**Content-Type:** `multipart/form-data` (file upload) **or** `application/json` (pre-parsed rows)
-
-**Multipart Request:**
-
-| Field | Type | Description |
-|:------|:-----|:------------|
-| `file` | File | CSV file, max 10 MB |
-
-**JSON Request Body:**
+### `GET /api/health`
 
 ```json
-{
-  "rows": [
-    { "Name": "John Doe", "Email": "john@example.com", "Phone": "+91 9876543210" }
-  ]
-}
+{ "ok": true, "timestamp": "2026-07-07T12:00:00.000Z" }
 ```
+
+### `POST /api/import`
+
+Import CSV via file upload or JSON body.
+
+**Multipart:** field name `file` (max 10 MB)  
+**JSON:** `{ "rows": [{ "Name": "Jane", "Email": "jane@example.com" }] }`
 
 **Response:**
 
 ```json
 {
-  "imported": [
-    {
-      "name": "John Doe",
-      "email": "john@example.com",
-      "country_code": "+91",
-      "mobile_without_country_code": "9876543210",
-      "company": "",
-      "city": "",
-      "state": "",
-      "country": "India",
-      "lead_owner": "",
-      "crm_status": "GOOD_LEAD_FOLLOW_UP",
-      "crm_note": "",
-      "data_source": "leads_on_demand",
-      "possession_time": "",
-      "description": "",
-      "created_at": "2026-07-07"
-    }
-  ],
-  "skipped": [],
-  "stats": {
-    "total": 1,
-    "imported": 1,
-    "skipped": 0
-  }
+  "imported": [ { "name": "Jane", "email": "jane@example.com", "crm_status": "GOOD_LEAD_FOLLOW_UP", "..." : "..." } ],
+  "skipped": [ { "rowIndex": 4, "reason": "Missing email and mobile" } ],
+  "totals": { "received": 10, "imported": 9, "skipped": 1 }
 }
 ```
 
-**Errors:**
+### `POST /api/import/stream`
 
-| Status | Meaning |
-|:-------|:--------|
-| `400` | No file uploaded or invalid CSV |
-| `500` | AI processing failed for all batches |
+Same input as `/api/import`, but returns **Server-Sent Events** with batch progress, then a final `done` event with the full result. Used by the import UI.
 
 ---
 
 ## CRM Schema
 
-Every imported record conforms to the following schema, validated with **Zod**:
+Every imported record is validated against this schema:
 
 | Field | Type | Notes |
 |:------|:-----|:------|
-| `created_at` | `string` | Date the record was created |
-| `name` | `string` | Full name of the lead |
-| `email` | `string` | Lowercased; duplicates go into `crm_note` |
-| `country_code` | `string` | e.g. `+91` |
-| `mobile_without_country_code` | `string` | Digits only, no spaces or dashes |
-| `company` | `string` | Company or organisation |
-| `city` | `string` | City |
-| `state` | `string` | State or province |
-| `country` | `string` | Country |
-| `lead_owner` | `string` | Assigned sales representative |
-| `crm_status` | `enum` | See below |
-| `crm_note` | `string` | Internal notes, alt contacts, etc. |
-| `data_source` | `enum` | See below |
-| `possession_time` | `string` | Expected possession timeline |
-| `description` | `string` | Extra details |
+| `name` | string | Full name |
+| `email` | string | Lowercased; duplicates noted in `crm_note` |
+| `country_code` | string | e.g. `+91` |
+| `mobile_without_country_code` | string | Digits only |
+| `company` | string | Organisation |
+| `city`, `state`, `country` | string | Location |
+| `lead_owner` | string | Assigned rep |
+| `crm_status` | enum | `GOOD_LEAD_FOLLOW_UP`, `DID_NOT_CONNECT`, `BAD_LEAD`, `SALE_DONE` |
+| `crm_note` | string | Notes / alt contacts |
+| `data_source` | enum | `leads_on_demand`, `meridian_tower`, `eden_park`, `varah_swamy`, `sarjapur_plots` |
+| `possession_time` | string | Timeline |
+| `description` | string | Extra details |
+| `created_at` | string | Record date |
 
-### `crm_status` values
-
-| Value | Meaning |
-|:------|:--------|
-| `GOOD_LEAD_FOLLOW_UP` | Active lead, needs follow-up |
-| `DID_NOT_CONNECT` | Could not reach the lead |
-| `BAD_LEAD` | Unqualified or invalid lead |
-| `SALE_DONE` | Conversion complete |
-
-### `data_source` values
-
-| Value | Project |
-|:------|:--------|
-| `leads_on_demand` | General / unspecified lead source |
-| `meridian_tower` | Meridian Tower project |
-| `eden_park` | Eden Park project |
-| `varah_swamy` | Varah Swamy project |
-| `sarjapur_plots` | Sarjapur Plots project |
-
-> Records with **no email AND no mobile** are automatically skipped and returned in the `skipped` array.
+Rows with **no email and no mobile** are skipped automatically.
 
 ---
 
 ## Sample CSV Files
 
-The `/samples` directory contains ready-to-use test files that cover the most common real-world formats:
-
-| File | Description | Rows |
-|:-----|:------------|:----:|
-| `groweasy_leads_150.csv` | Native GrowEasy export format | 150 |
-| `facebook_leads.csv` | Facebook Ads lead form export | varies |
-| `google_ads.csv` | Google Ads conversion export | varies |
-| `agency_messy.csv` | Agency export with inconsistent headers | varies |
-| `realestate_crm.csv` | Third-party real estate CRM export | varies |
-| `manual_sheet.csv` | Manually maintained spreadsheet | varies |
-
-Upload any of these through the UI to see the AI mapping in action.
+| File | Description |
+|:-----|:------------|
+| `samples/groweasy_leads_150.csv` | Native format, 150 rows |
+| `samples/facebook_leads.csv` | Facebook Ads export |
+| `samples/google_ads.csv` | Google Ads export |
+| `samples/agency_messy.csv` | Inconsistent column names |
+| `samples/realestate_crm.csv` | Third-party CRM export |
+| `samples/manual_sheet.csv` | Manual spreadsheet |
 
 ---
 
-## Contributing
+## Deployment Notes
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature`
-3. Commit your changes: `git commit -m 'Add your feature'`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a Pull Request
+| Service | Suggested host | Config |
+|:--------|:---------------|:-------|
+| Frontend | Vercel | Set `NEXT_PUBLIC_API_URL` to your API URL |
+| Backend | Render / Railway | Set `ALLOWED_ORIGINS` to your Vercel domain |
 
-### Development Tips
+**CORS:** Set `ALLOWED_ORIGINS` to your production frontend URL. Use `*` only for development or quick demos.
 
-- Run `npm run dev` in both `backend/` and `frontend/` simultaneously
-- Use the files in `/samples` to test various CSV formats
-- The AI system prompt is in `backend/src/prompts/extract.prompt.ts` — tweak it to support new field mappings or data sources
-- Zod schema in `backend/src/schema/crm.schema.ts` is the single source of truth for all field constraints
+**API keys:** Never commit `.env` files. Use host environment variables in production.
 
 ---
 
 ## License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
 <div align="center">
 
-Made with care for real estate sales teams who deserve better tooling.
-
-[![GitHub stars](https://img.shields.io/github/stars/your-username/groweasy?style=social)](https://github.com/your-username/groweasy)
+Built for real estate teams who are tired of manual CSV column mapping.
 
 </div>

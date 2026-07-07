@@ -4,13 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Archive, LayoutGrid, List, Search, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import Layout from '../../components/layout/Layout';
-import LeadCard from '../../components/leads/LeadCard';
+import LeadGrid from '../../components/leads/LeadGrid';
 import LeadTable from '../../components/leads/LeadTable';
 import Pagination from '../../components/ui/Pagination';
 import LeadDetailDrawer from '../../components/import/LeadDetailDrawer';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import useDebounce from '../../hooks/useDebounce';
-import { PAGE_VARIANTS, STAGGER_CONTAINER, STORAGE_KEYS, GRID_PAGE_SIZE, LIST_PAGE_SIZE } from '../../lib/helpers';
+import { PAGE_VARIANTS, STORAGE_KEYS, GRID_PAGE_SIZE, LIST_PAGE_SIZE } from '../../lib/helpers';
 import type { SavedImport, CrmRecord } from '../../lib/types';
 
 export default function LeadsPage() {
@@ -178,19 +178,12 @@ export default function LeadsPage() {
                         No records match your search.
                       </motion.div>
                     ) : viewMode === 'grid' ? (
-                      <motion.div key={`grid-p${page}`}
-                        variants={STAGGER_CONTAINER} initial="initial" animate="animate"
-                        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
-                      >
-                        {paged.map((record, i) => (
-                          <LeadCard
-                            key={i}
-                            record={record}
-                            index={(page - 1) * pageSize + i}
-                            onViewDetails={setDrawerRecord}
-                          />
-                        ))}
-                      </motion.div>
+                      <LeadGrid
+                        records={paged}
+                        indexOffset={(page - 1) * pageSize}
+                        animationKey={`grid-p${page}`}
+                        onViewDetails={setDrawerRecord}
+                      />
                     ) : (
                       <motion.div key={`list-p${page}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
                         <LeadTable
