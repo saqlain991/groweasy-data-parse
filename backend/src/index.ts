@@ -10,26 +10,35 @@ const app = express();
 const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
 const allowAll = allowedOrigins.includes('*');
 
-app.use(cors({
+function isOriginAllowed(origin: string): boolean {
+  return allowedOrigins.some(allowed => {
+    if (allowed === origin) return true;
+    // Wildcard subdomain: https://*.vercel.app matches https://foo.vercel.app
+    if (allowed.startsWith('https://*.')) {
+      const suffix = allowed.slice('https://*.'.length);
+      return origin.startsWith('https://') && origin.endsWith('.' + suffix);
+    }
+    return false;
+  });
+}
+
+const corsOptions: cors.CorsOptions = {
   origin: allowAll
     ? '*'
     : (origin, cb) => {
-        // Allow requests with no origin (server-to-server, curl, health checks)
+        // No Origin header = server-to-server or same-origin — allow
         if (!origin) return cb(null, true);
-        const ok = allowedOrigins.some(allowed => {
-          if (allowed === origin) return true;
-          // Wildcard subdomain pattern: https://*.vercel.app
-          if (allowed.startsWith('https://*.')) {
-            const suffix = allowed.slice('https://*.'.length);
-            return origin.startsWith('https://') && origin.endsWith('.' + suffix);
-          }
-          return false;
-        });
-        cb(ok ? null : new Error(`CORS: origin ${origin} not allowed`), ok);
+        // Return cb(null, false) — NOT cb(error) — to avoid Express 500 on preflight
+        cb(null, isOriginAllowed(origin));
       },
-  methods: ['GET', 'POST'],
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: !allowAll,
-}));
+  optionsSuccessStatus: 204,
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
 
