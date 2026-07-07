@@ -34,7 +34,7 @@ const envSchema = z.object({
   AI_BATCH_SIZE: z.string().default('20').transform(Number),
   AI_MAX_CONCURRENCY: z.string().default('2').transform(Number),
   AI_MAX_RETRIES: z.string().default('3').transform(Number),
-  ALLOWED_ORIGINS: z.string().default('http://localhost:3000'),
+  ALLOWED_ORIGINS: z.string().default('https://groweasy-data-parse.vercel.app,http://localhost:3000'),
 });
 
 export const env = envSchema.parse(process.env);
