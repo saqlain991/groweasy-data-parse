@@ -1,5 +1,4 @@
 import express, { Request, Response, NextFunction } from 'express';
-import cors from 'cors';
 import { spawnSync } from 'child_process';
 import { env } from './config/env';
 import { logger } from './utils/logger';
@@ -7,40 +6,52 @@ import importRouter from './routes/import';
 
 const app = express();
 
-const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
+// ─── CORS ─────────────────────────────────────────────────────────────────────
+
+const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(o => o.trim()).filter(Boolean);
 const allowAll = allowedOrigins.includes('*');
 
 function isOriginAllowed(origin: string): boolean {
   return allowedOrigins.some(allowed => {
     if (allowed === origin) return true;
-    // Wildcard subdomain: https://*.vercel.app matches https://foo.vercel.app
+    // Wildcard subdomain: https://*.vercel.app → matches https://anything.vercel.app
     if (allowed.startsWith('https://*.')) {
-      const suffix = allowed.slice('https://*.'.length);
-      return origin.startsWith('https://') && origin.endsWith('.' + suffix);
+      const suffix = '.' + allowed.slice('https://*.'.length); // e.g. ".vercel.app"
+      return origin.startsWith('https://') && origin.endsWith(suffix);
     }
     return false;
   });
 }
 
-const corsOptions: cors.CorsOptions = {
-  origin: allowAll
-    ? '*'
-    : (origin, cb) => {
-        // No Origin header = server-to-server or same-origin — allow
-        if (!origin) return cb(null, true);
-        // Return cb(null, false) — NOT cb(error) — to avoid Express 500 on preflight
-        cb(null, isOriginAllowed(origin));
-      },
-  methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: !allowAll,
-  optionsSuccessStatus: 204,
-};
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const origin = req.headers.origin;
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+  if (allowAll) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  } else if (origin && isOriginAllowed(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+  }
+
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Max-Age', '86400'); // cache preflight for 24h
+
+  // Respond to OPTIONS preflight immediately — no further processing needed
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+
+  next();
+});
+
+// ─── Body parsing ─────────────────────────────────────────────────────────────
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// ─── Routes ───────────────────────────────────────────────────────────────────
 
 app.get('/api/health', (_req: Request, res: Response) => {
   res.json({ ok: true, timestamp: new Date().toISOString() });
@@ -48,12 +59,15 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.use('/api/import', importRouter);
 
-// Central error handler
+// ─── Error handler ────────────────────────────────────────────────────────────
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
   logger.error('Unhandled error', err.message);
   res.status(500).json({ error: { code: 'INTERNAL', message: 'Internal server error' } });
 });
+
+// ─── Server startup ───────────────────────────────────────────────────────────
 
 function killPort(port: number): void {
   if (process.platform === 'win32') {
@@ -69,9 +83,9 @@ function killPort(port: number): void {
 function startServer(attempt = 0): void {
   const server = app.listen(env.PORT, () => {
     logger.info(`GrowEasy backend running on port ${env.PORT}`);
-    logger.info(`Health: http://localhost:${env.PORT}/api/health`);
-    if (!env.GEMINI_API_KEY) {
-      logger.warn('GEMINI_API_KEY not set — AI imports will fail. Add it to backend/.env');
+    logger.info(`Allowed origins: ${env.ALLOWED_ORIGINS}`);
+    if (!env.GEMINI_API_KEY && !env.GROQ_API_KEY) {
+      logger.warn('No AI provider configured. Set GEMINI_API_KEY or GROQ_API_KEY.');
     }
   });
 
@@ -81,7 +95,7 @@ function startServer(attempt = 0): void {
       killPort(env.PORT);
       setTimeout(() => startServer(attempt + 1), 1500);
     } else {
-      logger.error(`Port ${env.PORT} is still in use after kill attempt. Free it manually and retry.`);
+      logger.error(`Port ${env.PORT} is still in use after kill attempt.`);
       process.exit(1);
     }
   });
