@@ -7,9 +7,28 @@ import importRouter from './routes/import';
 
 const app = express();
 
+const allowedOrigins = env.ALLOWED_ORIGINS.split(',').map(o => o.trim());
+const allowAll = allowedOrigins.includes('*');
+
 app.use(cors({
-  origin: env.ALLOWED_ORIGINS.split(',').map(o => o.trim()),
+  origin: allowAll
+    ? '*'
+    : (origin, cb) => {
+        // Allow requests with no origin (server-to-server, curl, health checks)
+        if (!origin) return cb(null, true);
+        const ok = allowedOrigins.some(allowed => {
+          if (allowed === origin) return true;
+          // Wildcard subdomain pattern: https://*.vercel.app
+          if (allowed.startsWith('https://*.')) {
+            const suffix = allowed.slice('https://*.'.length);
+            return origin.startsWith('https://') && origin.endsWith('.' + suffix);
+          }
+          return false;
+        });
+        cb(ok ? null : new Error(`CORS: origin ${origin} not allowed`), ok);
+      },
   methods: ['GET', 'POST'],
+  credentials: !allowAll,
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true }));
