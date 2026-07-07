@@ -49,7 +49,7 @@ const envSchema = z.object({
   // Use * to allow all origins, or https://*.vercel.app for all Vercel previews.
   ALLOWED_ORIGINS: z
     .string()
-    .default('https://groweasy-data-parse.vercel.app,https://*.vercel.app,http://localhost:3000,http://localhost:3001')
+    .default('*')
     .transform(val =>
       val
         .split(',')
