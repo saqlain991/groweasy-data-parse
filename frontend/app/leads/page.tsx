@@ -7,13 +7,11 @@ import Layout from '../../components/layout/Layout';
 import LeadCard from '../../components/leads/LeadCard';
 import LeadTable from '../../components/leads/LeadTable';
 import Pagination from '../../components/ui/Pagination';
+import LeadDetailDrawer from '../../components/import/LeadDetailDrawer';
 import useLocalStorage from '../../hooks/useLocalStorage';
 import useDebounce from '../../hooks/useDebounce';
-import { PAGE_VARIANTS, STAGGER_CONTAINER, STORAGE_KEYS } from '../../lib/helpers';
+import { PAGE_VARIANTS, STAGGER_CONTAINER, STORAGE_KEYS, GRID_PAGE_SIZE, LIST_PAGE_SIZE } from '../../lib/helpers';
 import type { SavedImport, CrmRecord } from '../../lib/types';
-
-const GRID_PAGE_SIZE = 12;
-const LIST_PAGE_SIZE = 15;
 
 export default function LeadsPage() {
   const [imports, setImports] = useLocalStorage<SavedImport[]>(STORAGE_KEYS.IMPORTS, []);
@@ -22,7 +20,7 @@ export default function LeadsPage() {
   const [query, setQuery] = useState('');
   const [sortField, setSortField] = useState('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
-  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [drawerRecord, setDrawerRecord] = useState<CrmRecord | null>(null);
   const [page, setPage] = useState(1);
 
   const debouncedQuery = useDebounce(query, 300);
@@ -40,7 +38,6 @@ export default function LeadsPage() {
 
   // Reset state when batch or filters change
   useEffect(() => {
-    setExpandedIndex(null);
     setQuery('');
     setPage(1);
   }, [selectedId]);
@@ -90,11 +87,11 @@ export default function LeadsPage() {
 
           {imports.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-32 gap-4 text-center">
-              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center">
-                <Archive size={28} className="text-gray-300" />
+              <div className="w-16 h-16 bg-gray-50 dark:bg-white/5 rounded-2xl flex items-center justify-center">
+                <Archive size={28} className="text-gray-300 dark:text-gray-600" />
               </div>
-              <h3 className="text-[18px] font-bold text-gray-900">No saved imports yet</h3>
-              <p className="text-[14px] text-gray-400 max-w-sm">
+              <h3 className="text-[18px] font-bold text-gray-900 dark:text-gray-100">No saved imports yet</h3>
+              <p className="text-[14px] text-gray-400 dark:text-gray-500 max-w-sm">
                 Import a CSV and click &ldquo;Save Import&rdquo; to start browsing your leads here.
               </p>
               <Link href="/import"
@@ -106,25 +103,33 @@ export default function LeadsPage() {
             <div className="space-y-6">
 
               {/* Batch selector */}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2.5">
                 {imports.map(imp => {
                   const isActive = imp.id === (selectedId ?? imports[0]?.id);
                   return (
                     <button
                       key={imp.id}
                       onClick={() => setSelectedId(imp.id)}
-                      className={`group flex items-center gap-2 px-4 py-2 rounded-xl border text-[13px] font-semibold transition-all cursor-pointer ${isActive ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'}`}
+                      className={`group flex items-center gap-2 px-3.5 py-2 rounded-xl border-2 text-[13px] font-semibold transition-all cursor-pointer shadow-sm ${
+                        isActive
+                          ? 'bg-blue-600 text-white border-blue-600 shadow-blue-500/20'
+                          : 'bg-slate-50 dark:bg-[#13151c] text-slate-700 dark:text-gray-300 border-slate-200 dark:border-white/10 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/5 hover:text-blue-700 dark:hover:text-blue-400'
+                      }`}
                     >
                       <span className="max-w-[160px] truncate">{imp.name}</span>
-                      <span className={`text-[11px] font-medium shrink-0 ${isActive ? 'text-blue-200' : 'text-gray-400'}`}>
+                      <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black shrink-0 ${
+                        isActive ? 'bg-blue-500 text-white' : 'bg-blue-100 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 border border-blue-200 dark:border-transparent'
+                      }`}>
                         {imp.records.length}
                       </span>
-                      <span className={`text-[11px] shrink-0 ${isActive ? 'text-blue-200' : 'text-gray-400'}`}>
-                        · {formatDate(imp.savedAt)}
+                      <span className={`text-[11px] shrink-0 hidden sm:inline ${isActive ? 'text-blue-200' : 'text-gray-400 dark:text-gray-500'}`}>
+                        {formatDate(imp.savedAt)}
                       </span>
                       <span
                         onClick={e => handleDelete(imp.id, e)}
-                        className={`ml-0.5 p-0.5 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity ${isActive ? 'hover:bg-blue-700 text-white' : 'hover:bg-gray-100 text-gray-400'}`}
+                        className={`ml-0.5 p-0.5 rounded cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity ${
+                          isActive ? 'hover:bg-blue-700 text-blue-100' : 'hover:bg-red-50 dark:hover:bg-red-500/10 text-gray-300 dark:text-gray-600 hover:text-red-500 dark:hover:text-red-400'
+                        }`}
                       >
                         <Trash2 size={11} />
                       </span>
@@ -136,29 +141,29 @@ export default function LeadsPage() {
               {selectedImport && (
                 <>
                   {/* Controls bar */}
-                  <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-3 flex-wrap rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#13151c] p-3 shadow-sm">
                     <div className="flex-1 min-w-[200px] relative">
-                      <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                      <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 pointer-events-none" />
                       <input
                         value={query}
                         onChange={e => setQuery(e.target.value)}
-                        placeholder="Search by name, email, company, city…"
-                        className="w-full pl-9 pr-4 py-2.5 text-[13px] bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-gray-700 placeholder:text-gray-300"
+                        placeholder="Search by name, email, company, city..."
+                        className="w-full pl-9 pr-4 py-2.5 text-[13px] bg-white dark:bg-[#13151c] border border-gray-200 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 transition-all text-gray-800 dark:text-gray-200 placeholder:text-gray-400 dark:placeholder:text-gray-600"
                       />
                     </div>
-                    <span className="text-[12px] text-gray-400 font-medium whitespace-nowrap">
+                    <span className="text-[12px] text-gray-500 dark:text-gray-500 font-medium whitespace-nowrap">
                       {filtered.length} of {selectedImport.records.length}
                     </span>
-                    <div className="flex rounded-xl border border-gray-200 overflow-hidden">
+                    <div className="flex rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden bg-gray-50 dark:bg-white/5">
                       <button
                         onClick={() => setViewMode('grid')}
-                        className={`px-3 py-2 cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 hover:text-gray-600'}`}
+                        className={`px-3 py-2 cursor-pointer transition-colors ${viewMode === 'grid' ? 'bg-blue-600 dark:bg-white/10 text-white' : 'bg-white dark:bg-[#13151c] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                       >
                         <LayoutGrid size={15} />
                       </button>
                       <button
                         onClick={() => setViewMode('list')}
-                        className={`px-3 py-2 cursor-pointer transition-colors border-l border-gray-200 ${viewMode === 'list' ? 'bg-gray-900 text-white' : 'bg-white text-gray-400 hover:text-gray-600'}`}
+                        className={`px-3 py-2 cursor-pointer transition-colors border-l border-gray-200 dark:border-white/10 ${viewMode === 'list' ? 'bg-blue-600 dark:bg-white/10 text-white' : 'bg-white dark:bg-[#13151c] text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
                       >
                         <List size={15} />
                       </button>
@@ -169,7 +174,7 @@ export default function LeadsPage() {
                   <AnimatePresence mode="wait">
                     {filtered.length === 0 ? (
                       <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="text-center py-16 text-[14px] text-gray-400">
+                        className="text-center py-16 text-[14px] text-gray-400 dark:text-gray-500">
                         No records match your search.
                       </motion.div>
                     ) : viewMode === 'grid' ? (
@@ -182,11 +187,7 @@ export default function LeadsPage() {
                             key={i}
                             record={record}
                             index={(page - 1) * pageSize + i}
-                            isExpanded={expandedIndex === (page - 1) * pageSize + i}
-                            onClick={() => {
-                              const abs = (page - 1) * pageSize + i;
-                              setExpandedIndex(expandedIndex === abs ? null : abs);
-                            }}
+                            onViewDetails={setDrawerRecord}
                           />
                         ))}
                       </motion.div>
@@ -197,6 +198,7 @@ export default function LeadsPage() {
                           sortField={sortField}
                           sortDir={sortDir}
                           onSort={handleSort}
+                          onRowClick={setDrawerRecord}
                         />
                       </motion.div>
                     )}
@@ -215,6 +217,10 @@ export default function LeadsPage() {
           )}
         </div>
       </Layout>
+      <LeadDetailDrawer record={drawerRecord} open={!!drawerRecord} onClose={() => setDrawerRecord(null)} />
     </motion.div>
   );
 }
+
+
+

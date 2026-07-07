@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Class-based dark mode for next-themes (not prefers-color-scheme) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'DM Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
@@ -24,6 +27,31 @@
   --shadow-sidebar: 4px 0 24px rgba(0,0,0,0.15);
 }
 
+/* Runtime CSS variables for components that can't use Tailwind dark: classes */
+:root {
+  --bg-canvas-runtime: #f8f9fc;
+  --bg-card: #ffffff;
+  --bg-surface: #f3f5f9;
+  --bg-soft: #eef2f7;
+  --text-primary: #0f1117;
+  --text-secondary: #374151;
+  --text-muted: #64748b;
+  --border-default: #e3e8f0;
+  --border-subtle: #edf1f6;
+}
+
+.dark {
+  --bg-canvas-runtime: #0d1017;
+  --bg-card: #171a23;
+  --bg-surface: #202532;
+  --bg-soft: #2a3040;
+  --text-primary: #f7f8fb;
+  --text-secondary: #d5dae5;
+  --text-muted: #9aa4b5;
+  --border-default: rgba(255,255,255,0.14);
+  --border-subtle: rgba(255,255,255,0.08);
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 html {
@@ -34,15 +62,19 @@ html {
 }
 
 body {
-  background-color: var(--color-canvas);
-  color: #0f1117;
+  background-color: var(--bg-canvas-runtime);
+  color: var(--text-primary);
   overflow-x: hidden;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
+/* Keep legacy Tailwind canvas class synced with runtime theme tokens */
+.bg-canvas { background-color: var(--bg-canvas-runtime) !important; }
+
 ::-webkit-scrollbar       { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 8px; }
+.dark ::-webkit-scrollbar-thumb { background: #374151; }
 ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
 
 @utility sidebar-nav-item {
@@ -76,10 +108,10 @@ body {
 }
 
 @utility glass-card {
-  background: rgba(255,255,255,0.8);
+  background: color-mix(in srgb, var(--bg-card) 82%, transparent);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.9);
+  border: 1px solid var(--border-default);
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }

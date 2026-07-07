@@ -9,6 +9,9 @@ export const STORAGE_KEYS = {
   IMPORTS:    'groweasy_saved_imports',
 };
 
+export const GRID_PAGE_SIZE = 12;
+export const LIST_PAGE_SIZE = 15;
+
 export const AVATAR_PALETTES = [
   { bg: '#eff6ff', text: '#1d4ed8', border: '#bfdbfe' },
   { bg: '#fdf4ff', text: '#7c3aed', border: '#e9d5ff' },

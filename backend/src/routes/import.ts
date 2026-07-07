@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { handleImport } from '../controllers/import.controller';
+import { handleImport, handleImportStream } from '../controllers/import.controller';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -15,6 +15,11 @@ const upload = multer({
 });
 
 const router = Router();
+
+// Standard JSON response
 router.post('/', upload.single('file'), handleImport);
+
+// SSE streaming (real-time batch progress)
+router.post('/stream', upload.single('file'), handleImportStream);
 
 export default router;

@@ -5,7 +5,10 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -20,8 +23,10 @@
     "@types/multer": "^1.4.11",
     "@types/node": "^20.14.0",
     "@types/papaparse": "^5.3.14",
+    "@vitest/coverage-v8": "^4.1.10",
     "nodemon": "^3.1.4",
     "tsx": "^4.15.5",
-    "typescript": "^5.4.5"
+    "typescript": "^5.4.5",
+    "vitest": "^4.1.10"
   }
 }

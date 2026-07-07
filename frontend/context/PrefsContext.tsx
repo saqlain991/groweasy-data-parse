@@ -20,8 +20,7 @@ interface PrefsContextValue {
 const PrefsContext = createContext<PrefsContextValue | null>(null);
 
 const SEED_NOTIFICATIONS: AppNotification[] = [
-  { id: 'seed-1', text: 'New expert joined the network', time: '5m ago', unread: true },
-  { id: 'seed-2', text: 'Your wallet balance was updated', time: '1h ago', unread: false },
+  { id: 'seed-1', text: 'Thanks For Using GrowEasy', time: '5m ago', unread: true }  
 ];
 
 export function PrefsProvider({ children }: { children: ReactNode }) {

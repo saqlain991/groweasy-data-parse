@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { PrefsProvider } from "../context/PrefsContext";
+import { ThemeProvider } from "../components/ui/ThemeProvider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -27,9 +28,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${dmSans.variable} ${jetbrainsMono.variable}`}>
-        <PrefsProvider>
-          {children}
-        </PrefsProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false} disableTransitionOnChange>
+          <PrefsProvider>
+            {children}
+          </PrefsProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -20,7 +20,7 @@ const NAV_SECTIONS = [
     items: [
       { path: '/import', label: 'Import CSV', icon: Upload },
       { path: '/leads', label: 'Leads', icon: Database },
-      { path: '/users', label: 'Users', icon: Users, badge: '10' },
+      { path: '/users', label: 'Leads Directory', icon: Users },
     ]
   },
   

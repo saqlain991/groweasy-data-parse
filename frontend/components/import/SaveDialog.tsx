@@ -34,16 +34,16 @@ export default function SaveDialog({ defaultName, onSave, onClose }: Props) {
       />
       <motion.div
         variants={MODAL_VARIANTS} initial="initial" animate="animate" exit="exit"
-        className="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10"
+        className="relative bg-white dark:bg-[#13151c] rounded-2xl shadow-2xl w-full max-w-sm p-6 z-10 border border-gray-100 dark:border-white/10"
       >
         <div className="flex items-start justify-between mb-5">
           <div>
-            <h3 className="text-[17px] font-extrabold text-gray-900">Save Import</h3>
-            <p className="text-[13px] text-gray-400 mt-0.5">Give this import a name to find it later</p>
+            <h3 className="text-[17px] font-extrabold text-gray-900 dark:text-gray-100">Save Import</h3>
+            <p className="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5">Give this import a name to find it later</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 hover:bg-gray-100 rounded-lg text-gray-400 transition-colors cursor-pointer"
+            className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 dark:text-gray-500 transition-colors cursor-pointer"
           >
             <X size={18} />
           </button>
@@ -54,13 +54,13 @@ export default function SaveDialog({ defaultName, onSave, onClose }: Props) {
             value={name}
             onChange={e => setName(e.target.value)}
             placeholder="e.g. Q2 Leads, Mumbai Campaign…"
-            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-[14px] font-medium text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
+            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0d0f14] text-[14px] font-medium text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 transition-all"
           />
           <div className="flex gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-[13px] font-bold text-gray-600 hover:border-gray-300 hover:text-gray-800 transition-colors cursor-pointer"
+              className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-[13px] font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors cursor-pointer"
             >
               Cancel
             </button>

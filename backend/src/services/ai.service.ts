@@ -133,17 +133,29 @@ export type BatchResult =
   | { ok: true;  records: Record<string, string>[] }
   | { ok: false; batch:   Record<string, unknown>[] };
 
-export async function extractAll(rows: Record<string, unknown>[]): Promise<BatchResult[]> {
+export type ProgressEvent =
+  | { type: 'batch_start';    batchIndex: number; totalBatches: number; rowCount: number }
+  | { type: 'batch_done';     batchIndex: number; totalBatches: number; imported: number; retried: boolean }
+  | { type: 'batch_retry';    batchIndex: number; attempt: number }
+  | { type: 'row_fallback';   batchIndex: number; rowsLeft: number };
+
+export async function extractAll(
+  rows: Record<string, unknown>[],
+  onProgress?: (event: ProgressEvent) => void,
+): Promise<BatchResult[]> {
   const batches = chunk(rows, env.AI_BATCH_SIZE);
   logger.info(`Processing ${rows.length} rows in ${batches.length} batches`);
 
   return pool(batches, env.AI_MAX_CONCURRENCY, async (batch, i) => {
+    onProgress?.({ type: 'batch_start', batchIndex: i, totalBatches: batches.length, rowCount: batch.length });
     try {
       logger.info(`Batch ${i + 1}/${batches.length}: extracting ${batch.length} rows`);
       const records = await extractBatch(batch);
+      onProgress?.({ type: 'batch_done', batchIndex: i, totalBatches: batches.length, imported: records.length, retried: false });
       return { ok: true as const, records };
     } catch (e) {
       logger.warn(`Batch ${i + 1} failed — trying single-record fallback: ${String(e)}`);
+      onProgress?.({ type: 'row_fallback', batchIndex: i, rowsLeft: batch.length });
       const fallbackRecords: Record<string, string>[] = [];
       for (const row of batch) {
         try {
@@ -153,6 +165,7 @@ export async function extractAll(rows: Record<string, unknown>[]): Promise<Batch
           fallbackRecords.push({} as Record<string, string>);
         }
       }
+      onProgress?.({ type: 'batch_done', batchIndex: i, totalBatches: batches.length, imported: fallbackRecords.length, retried: true });
       return { ok: true as const, records: fallbackRecords };
     }
   });
